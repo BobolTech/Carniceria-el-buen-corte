@@ -38,8 +38,7 @@ def crear_sesion_pago():
                 'quantity': 1,
             })
 
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
+checkout_session = stripe.checkout.Session.create(
             line_items=line_items,
             mode='payment',
             success_url='https://' + request.host + '/exito',
