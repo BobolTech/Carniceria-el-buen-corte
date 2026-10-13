@@ -1,69 +1,69 @@
 import os
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, render_template, request, jsonify
 import stripe
 
 app = Flask(__name__)
 
-# Llave secreta de prueba de Stripe
-stripe.api_key = os.getenv(
-    "STRIPE_SECRET_KEY", "sk_test_tu_llave_aqui_de_prueba"
-)
+# Configurar la llave secreta de Stripe desde las variables de entorno de Railway
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 
-
-@app.route("/")
+@app.route('/')
 def index():
-  return render_template("index.html")
+    return render_template('index.html')
 
-
-@app.route("/crear-sesion-pago", methods=["POST"])
+@app.route('/crear-sesion-pago', methods=['POST'])
 def crear_sesion_pago():
-  try:
-    datos = request.json
-    carrito = datos.get("carrito", [])
-    tipo_entrega = datos.get("tipoEntrega", "recoger")
-    cliente = datos.get("cliente", {})
+    try:
+        data = request.get_json()
+        carrito = data.get('carrito', [])
+        tipo_entrega = data.get('tipoEntrega', 'recoger')
+        cliente = data.get('cliente', {})
 
-    line_items = []
-    for item in carrito:
-      line_items.append({
-          "price_data": {
-              "currency": "mxn",
-              "product_data": {
-                  "name": item["nombre"],
-              },
-              "unit_amount": int(
-                  item["precio"] * 100
-              ),  # Convertir pesos a centavos
-          },
-          "quantity": item.get("cantidad", 1),
-      })
+        line_items = []
+        
+        # Construir los elementos para la sesión de Stripe
+        for item in carrito:
+            line_items.append({
+                'price_data': {
+                    'currency': 'mxn',
+                    'product_data': {
+                        'name': item['nombre'],
+                    },
+                    'unit_amount': int(item['precio'] * 100), # Stripe maneja centavos
+                },
+                'quantity': item['cantidad'],
+            })
 
-    # Si es servicio a domicilio, agregamos la tarifa de envío de $35 MXN
-    if tipo_entrega == "domicilio":
-      line_items.append({
-          "price_data": {
-              "currency": "mxn",
-              "product_data": {
-                  "name": "Servicio a Domicilio",
-              },
-              "unit_amount": 3500,  # $35.00 MXN
-          },
-          "quantity": 1,
-      })
+        # Agregar costo de envío si aplica a domicilio
+        if tipo_entrega == 'domicilio':
+            line_items.append({
+                'price_data': {
+                    'currency': 'mxn',
+                    'product_data': {
+                        'name': 'Servicio a Domicilio',
+                    },
+                    'unit_amount': 3500, # $35.00 MXN en centavos
+                },
+                'quantity': 1,
+            })
 
-    # Crear la sesión de pago en Stripe
-    sesion = stripe.checkout.Session.create(
-        payment_method_types=["card"],
-        line_items=line_items,
-        mode="payment",
-        success_url=request.host_url + "?status=success",
-        cancel_url=request.host_url + "?status=cancel",
-    )
+        # Crear la sesión de pago en Stripe
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=line_items,
+            mode='payment',
+            success_url='https://' + request.host + '/exito',
+            cancel_url='https://' + request.host + '/',
+        )
 
-    return jsonify({"url": sesion.url})
-  except Exception as e:
-    return jsonify({"error": str(e)}), 400
+        return jsonify({'url': checkout_session.url})
 
+    except Exception as e:
+        return jsonify({'error': str(e)}), 403
 
-if __name__ == "__main__":
-  app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+@app.route('/exito')
+def exito():
+    return "<h1 style='text-align:center; color:green; font-family:sans-serif; margin-top:50px;'>¡Pago exitoso! Gracias por tu pedido en la Carnicería El Buen Corte.</h1><p style='text-align:center; font-family:sans-serif;'>Puedes cerrar esta ventana y regresar al chat.</p>"
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
