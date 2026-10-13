@@ -2,14 +2,13 @@ import os
 from flask import Flask, render_template, request, jsonify
 import stripe
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
+app = Flask(__name__)
 
-app = Flask(__name__, template_folder=TEMPLATE_DIR)
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 
 @app.route('/')
 def index():
+    # Busca index.html directamente en la carpeta actual
     return render_template('index.html')
 
 @app.route('/crear-sesion-pago', methods=['POST'])
