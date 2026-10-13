@@ -2,10 +2,8 @@ import os
 from flask import Flask, render_template, request, jsonify
 import stripe
 
-# Inicializar Flask (busca index.html en la raíz automáticamente)
-app = Flask(__name__)
+app = Flask(__name__, template_folder='.')
 
-# Configurar la llave secreta de Stripe
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 
 @app.route('/')
