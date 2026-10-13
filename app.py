@@ -66,4 +66,7 @@ def exito():
     return "<h1 style='text-align:center; color:green; font-family:sans-serif; margin-top:50px;'>¡Pago exitoso! Gracias por tu pedido en la Carnicería El Buen Corte.</h1><p style='text-align:center; font-family:sans-serif;'>Puedes cerrar esta ventana y regresar al chat.</p>"
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    # Leer el puerto de Railway, o usar 5000 como respaldo local
+    port = int(os.environ.get('PORT', 5000))
+    # host='0.0.0.0' es fundamental para escuchar peticiones de Railway
+    app.run(host='0.0.0.0', port=port)
