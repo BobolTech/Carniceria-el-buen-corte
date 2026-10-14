@@ -50,8 +50,32 @@ def crear_sesion_pago():
 
 @app.route('/exito')
 def exito():
-    return "<h1 style='text-align:center; color:green;'>¡Pago exitoso!</h1>"
-
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    return """
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <title>¡Pago Exitoso! - Carnicería El Buen Corte</title>
+        <meta http-equiv="refresh" content="3;url=/">
+        <style>
+            body { background-color: #121212; color: #fff; font-family: sans-serif; text-align: center; padding-top: 100px; }
+            .card { background: #1e1e1e; max-width: 400px; margin: auto; padding: 30px; border-radius: 10px; border: 1px solid #333; }
+            h1 { color: #27ae60; }
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <h1>¡Pago Exitoso! 🥩</h1>
+            <p>Muchas gracias por tu compra en El Buen Corte.</p>
+            <p style="font-size: 0.9rem; color: #aaa;">Te estamos redirigiendo de regreso a la tienda...</p>
+        </div>
+        <script>
+            // Limpia el carrito almacenado localmente al completarse el pago
+            localStorage.removeItem('carrito');
+            setTimeout(function() {
+                window.location.href = '/';
+            }, 3000);
+        </script>
+    </body>
+    </html>
+    """
